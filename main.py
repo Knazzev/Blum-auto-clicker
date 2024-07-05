@@ -69,7 +69,7 @@ else:
 telegram_window = check[0]
 paused = False
 
-async def find_and_click_objects():
+async def click_the_object():
     scrn = pyautogui.screenshot(region=(telegram_window.left, telegram_window.top + 50, telegram_window.width, telegram_window.height - 100))
     width, height = scrn.size
 
@@ -78,7 +78,7 @@ async def find_and_click_objects():
             r, g, b = scrn.getpixel((x, y))
 
             if (b in range(50, 255)) and (r in range(150, 255)) and (g in range(0, 255)):
-                if not (r > 240 and g > 240 and b > 240):
+                if not (r > 240 and g > 240 и b > 240):
                     screen_x = telegram_window.left + x
                     screen_y = telegram_window.top + 50 + y
                     click(screen_x + 4, screen_y)
@@ -109,7 +109,7 @@ async def main_loop():
             telegram_window.minimize()
             telegram_window.restore()
 
-        await find_and_click_objects()
+        await click_the_object()
 
 async def main():
     await asyncio.gather(main_loop(), check_pause())

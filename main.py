@@ -69,6 +69,10 @@ else:
 telegram_window = check[0]
 paused = False
 
+def is_correct_window():
+    current_window = gw.getActiveWindow()
+    return current_window and current_window.title == telegram_window.title
+
 async def click_objects():
     scrn = pyautogui.screenshot(region=(telegram_window.left, telegram_window.top + 50, telegram_window.width, telegram_window.height - 100))
     width, height = scrn.size
@@ -87,7 +91,7 @@ async def click_objects():
 async def check_pause():
     global paused
     while True:
-        if keyboard.is_pressed('z'):
+        if keyboard.is_pressed('z') and is_correct_window():
             paused = not paused
             print(msg["pause_message"] if paused else msg["continue_message"])
             await asyncio.sleep(0.2)

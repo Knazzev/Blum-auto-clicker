@@ -4,11 +4,7 @@ import time
 import keyboard
 import random
 from pynput.mouse import Button, Controller
-import colorama
-from colorama import Fore
-import asyncio
 
-colorama.init(autoreset=True)
 mouse = Controller()
 
 time.sleep(0.5)
@@ -62,60 +58,44 @@ window_name = window_name_map.get(window_name, window_name)
 check = gw.getWindowsWithTitle(window_name)
 if not check:
     print(msg["window_not_found"].format(window_name))
-    exit()
 else:
     print(msg["window_found"].format(window_name))
 
-telegram_window = check[0]
+telegram_window = check[0] if check else None
 paused = False
 
-def is_correct_window():
-    current_window = gw.getActiveWindow()
-    return current_window and current_window.title == telegram_window.title
+while telegram_window:
+    if keyboard.is_pressed('z'):
+        paused = not paused
+        print(msg["pause_message"] if paused else msg["continue_message"])
+        time.sleep(0.2)
 
-async def click_objects():
-    scrn = pyautogui.screenshot(region=(telegram_window.left, telegram_window.top + 50, telegram_window.width, telegram_window.height - 100))
+    if paused:
+        continue
+
+    window_rect = (
+        telegram_window.left, telegram_window.top, telegram_window.width, telegram_window.height
+    )
+
+    try:
+        telegram_window.activate()
+    except:
+        telegram_window.minimize()
+        telegram_window.restore()
+
+    scrn = pyautogui.screenshot(region=(window_rect[0], window_rect[1], window_rect[2], window_rect[3]))
+
     width, height = scrn.size
+    pixel_found = False
 
-    for x in range(0, width, 10):
-        for y in range(0, height, 10):
+    for x in range(0, width, 20):
+        for y in range(0, height, 20):
             r, g, b = scrn.getpixel((x, y))
-
-            if (b in range(50, 255)) and (r in range(150, 255)) and (g in range(0, 255)):
-                if not (r > 240 and g > 240 and b > 240):
-                    screen_x = telegram_window.left + x
-                    screen_y = telegram_window.top + 50 + y
-                    click(screen_x + 4, screen_y)
-                    await asyncio.sleep(0.001)
-
-async def check_pause():
-    global paused
-    while True:
-        if keyboard.is_pressed('z') and is_correct_window():
-            paused = not paused
-            print(msg["pause_message"] if paused else msg["continue_message"])
-            await asyncio.sleep(0.2)
-        await asyncio.sleep(0.1)
-
-async def main_loop():
-    while True:
-        if paused:
-            await asyncio.sleep(0.1)
-            continue
-
-        window_rect = (
-            telegram_window.left, telegram_window.top, telegram_window.width, telegram_window.height
-        )
-
-        try:
-            telegram_window.activate()
-        except:
-            telegram_window.minimize()
-            telegram_window.restore()
-
-        await click_objects()
-
-async def main():
-    await asyncio.gather(main_loop(), check_pause())
-
-asyncio.run(main())
+            if (b in range(0, 125)) and (r in range(102, 220)) and (g in range(200, 255)):
+                screen_x = window_rect[0] + x
+                screen_y = window_rect[1] + y
+                click(screen_x, screen_y)
+                pixel_found = True
+                break
+        if pixel_found:
+            break

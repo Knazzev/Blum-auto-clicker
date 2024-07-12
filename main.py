@@ -1,9 +1,16 @@
-import pyautogui
-import pygetwindow as gw
+import os
 import time
-import keyboard
 import random
+import cv2
+import keyboard
+import numpy as np
+import pygetwindow as gw
+import pyautogui
 from pynput.mouse import Button, Controller
+from pywinauto import Application
+from mss import mss
+
+CHECK_INTERVAL = 5
 
 mouse = Controller()
 
@@ -47,6 +54,38 @@ def click(x, y):
     mouse.press(Button.left)
     mouse.release(Button.left)
 
+def check_and_click_play_button(sct, monitor):
+    templates = [
+        cv2.imread(os.path.join("assets", "play_button.png"), cv2.IMREAD_GRAYSCALE),
+        cv2.imread(os.path.join("assets", "play_button1.png"), cv2.IMREAD_GRAYSCALE),
+        cv2.imread(os.path.join("assets", "close_button2.png"), cv2.IMREAD_GRAYSCALE),
+        cv2.imread(os.path.join("assets", "captcha.png"), cv2.IMREAD_GRAYSCALE)
+    ]
+
+    for template in templates:
+        if template is None:
+            print("Не удалось загрузить файл шаблона.")
+            continue
+
+        template_height, template_width = template.shape
+
+        img = np.array(sct.grab(monitor))
+        img_gray = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
+
+        res = cv2.matchTemplate(img_gray, template, cv2.TM_CCOEFF_NORMED)
+        loc = np.where(res >= 0.8)
+
+        matched_points = list(zip(*loc[::-1]))
+
+        if matched_points:
+            pt_x, pt_y = matched_points[0]
+            cX = pt_x + template_width // 2 + monitor["left"]
+            cY = pt_y + template_height // 2 + monitor["top"]
+
+            click(cX, cY)
+            print(f'Нажал на кнопку: {cX} {cY}')
+            break 
+
 window_name = input(msg["window_input"])
 
 window_name_map = {
@@ -64,38 +103,52 @@ else:
 telegram_window = check[0] if check else None
 paused = False
 
-while telegram_window:
-    if keyboard.is_pressed('z'):
-        paused = not paused
-        print(msg["pause_message"] if paused else msg["continue_message"])
-        time.sleep(0.2)
+with mss() as sct:
+    last_check_time = time.time()
 
-    if paused:
-        continue
+    while telegram_window:
+        if keyboard.is_pressed('z'):
+            paused = not paused
+            print(msg["pause_message"] if paused else msg["continue_message"])
+            time.sleep(0.2)
 
-    window_rect = (
-        telegram_window.left, telegram_window.top, telegram_window.width, telegram_window.height
-    )
+        if paused:
+            continue
 
-    try:
-        telegram_window.activate()
-    except:
-        telegram_window.minimize()
-        telegram_window.restore()
+        window_rect = (
+            telegram_window.left, telegram_window.top, telegram_window.width, telegram_window.height
+        )
 
-    scrn = pyautogui.screenshot(region=(window_rect[0], window_rect[1], window_rect[2], window_rect[3]))
+        try:
+            telegram_window.activate()
+        except:
+            telegram_window.minimize()
+            telegram_window.restore()
 
-    width, height = scrn.size
-    pixel_found = False
+        current_time = time.time()
+        if current_time - last_check_time >= CHECK_INTERVAL:
+            last_check_time = current_time
+            monitor = {
+                "top": window_rect[1],
+                "left": window_rect[0],
+                "width": window_rect[2],
+                "height": window_rect[3]
+            }
+            check_and_click_play_button(sct, monitor)
 
-    for x in range(0, width, 20):
-        for y in range(0, height, 20):
-            r, g, b = scrn.getpixel((x, y))
-            if (b in range(0, 125)) and (r in range(102, 220)) and (g in range(200, 255)):
-                screen_x = window_rect[0] + x
-                screen_y = window_rect[1] + y
-                click(screen_x, screen_y)
-                pixel_found = True
+        scrn = pyautogui.screenshot(region=(window_rect[0], window_rect[1], window_rect[2], window_rect[3]))
+
+        width, height = scrn.size
+        pixel_found = False
+
+        for x in range(0, width, 20):
+            for y in range(0, height, 20):
+                r, g, b = scrn.getpixel((x, y))
+                if (b in range(0, 125)) and (r in range(102, 220)) and (g in range(200, 255)):
+                    screen_x = window_rect[0] + x
+                    screen_y = window_rect[1] + y
+                    click(screen_x, screen_y)
+                    pixel_found = True
+                    break
+            if pixel_found:
                 break
-        if pixel_found:
-            break

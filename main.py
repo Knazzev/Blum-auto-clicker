@@ -56,10 +56,10 @@ def click(x, y):
 
 def check_and_click_play_button(sct, monitor):
     templates = [
-        cv2.imread(os.path.join("assets", "play_button1.png"), cv2.IMREAD_GRAYSCALE),
         cv2.imread(os.path.join("assets", "play_button2.png"), cv2.IMREAD_GRAYSCALE),
+        cv2.imread(os.path.join("assets", "play_button1.png"), cv2.IMREAD_GRAYSCALE),
         cv2.imread(os.path.join("assets", "close_button.png"), cv2.IMREAD_GRAYSCALE),
-        cv2.imread(os.path.join("assets", "captcha.png"), cv2.IMREAD_GRAYSCALE)
+        cv2.imread(os.path.join("assets", "captcha.png"), cv2.IMREAD_GRAYSCALE) 
     ]
 
     for template in templates:
@@ -84,7 +84,7 @@ def check_and_click_play_button(sct, monitor):
 
             click(cX, cY)
             print(f'Нажал на кнопку: {cX} {cY}')
-            break 
+            break  
 
 window_name = input(msg["window_input"])
 

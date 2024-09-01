@@ -11,7 +11,13 @@
 ## О проекте:
 ### В проекте используются
 - Python 3.9.10, библиотеки: <code>pyautogui</code>, <code>pygetwindow</code>, <code>keyboard</code>, <code>pynput</code>, <code>mss</code>, <code>cv2</code>, <code>random</code>, <code>pywinauto</code>, <code>time</code>, <code>os</code>, <code>numpy</code>
-### Установка
-- Чтобы использовать скрипт, установите все необходимые зависимости следующим образом: <code>pip install -r requirements.txt</code>
+## Установка
+### Существует три способа установки и использования скрипта:
+1.  Воспользуйтесь файлом `installer.cmd`, он установит все за вас, воспользуйтесь файлом `blum_auto_clicker.cmd`, или `main.py` для запуска скрипта.<br>
+2.  Самый простой способ, воспользуйтесь файлом `blum_auto_clicker.exe`, ничего устанавливать не потребуется.
+3.  Третий способ, установите все необходимые зависимости вручную, следующим образом: `pip install -r requirements.txt`.
+
+- Перемещать все файлы, кроме `blum_auto_clicker.exe` категорически не рекомендуется.
+
 
 ![Blum](assets/blum.png)
